@@ -5,22 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Project extends Model
+class Technology extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-        "title",
-        "slug",
-        "content"
+        'title',
+        'slug'
     ];
 
-      // One to Many
-      public function type()
-      {
-          return $this->belongsTo(Type::class);
-      }
-      // Many-to-Many con Tag
+    /*
+        Relationships
+    */
+    // Many-to-Many to Projects
     public function technologies()
     {
         return $this->belongsToMany(Technology::class);

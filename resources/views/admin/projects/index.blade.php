@@ -27,6 +27,7 @@
                                 <th scope="col">Title</th>
                                 <th scope="col">Slug</th>
                                 <th scope="col">Type</th>
+                                <th scope="col">Technology</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -45,6 +46,18 @@
                                             -
                                         @endif
                                     </td>
+                                    <td>
+                                        <div>
+                                            @forelse ($project->technologies as $technology)
+                                                <a href="{{ route('admin.technologies.show', ['tag' => $tag->id]) }}" class="badge rounded-pill text-bg-primary">
+                                                    {{ $technology->title }}
+                                                </a>
+                                            @empty
+                                                -
+                                            @endforelse
+                                        </div>
+                                    </td>
+
                                     <td>
                                         <a href="{{ route('admin.project.show', ['project' => $project->slug]) }}" class="btn btn-xs btn-primary p-1">
                                             <i class="fa-solid fa-eye"></i>

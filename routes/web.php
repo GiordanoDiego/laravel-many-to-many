@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\MainController as AdminMainController;
 //importo controller
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\TypeController;
+use App\Http\Controllers\Admin\TechnologyController;
+
 
 
 
@@ -40,7 +42,9 @@ Route::prefix('admin')
     Route::resource('project', ProjectController::class);
     //definisco tutte le 7 rotte per types
     Route::resource('type', TypeController::class);
-    // php artisan route:list        mostra tutte le rotte definite
+
+    Route::resource('technologies', TechnologyController::class);
+    // php artisan route:list mostra tutte le rotte definite
 });
 
 require __DIR__.'/auth.php';

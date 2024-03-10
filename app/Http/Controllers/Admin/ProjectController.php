@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 //model
 use App\Models\Project;
 use App\Models\Type;
+use App\Models\Technology;
+
 
 
 class ProjectController extends Controller
@@ -21,6 +23,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::all();
+      
 
         return view('admin.projects.index', compact('projects'));
     }
@@ -31,7 +34,8 @@ class ProjectController extends Controller
     public function create()
     {
         $types = Type::all();
-        return view('admin.projects.create', compact('types'));
+        $technologies = Technology::all();
+        return view('admin.projects.create', compact('types','technologies'));
     }
 
     /**
@@ -51,14 +55,24 @@ class ProjectController extends Controller
                 'content.required' => 'Devi necessariamento inserire una descrizione del progetto ',
                 'content.max' => 'Non puoi inserire un descrizione più lunga di 4096 caratteri ',
             ]);
-    
+            
+
             // Genera lo slug dal titolo
             $slug = Str::slug($validatedData['title']);
     
             // Aggiungi lo slug ai dati validati
             $validatedData['slug'] = $slug;
+
+            
             
             $project = Project::create($validatedData);
+            if (isset($validatedData['technologies'])) {
+                foreach ($validatedData['technologies'] as $technologyId) {
+                
+                    $project->tags()->attach($technologyId);
+                }
+            }
+
             return redirect()->route('admin.project.show', ['project' => $project->slug]);
         }
         //gestico l'errore dell'eventuale non unicità dello slug
@@ -91,8 +105,9 @@ class ProjectController extends Controller
     {
         $project = Project::where('slug', $slug)->firstOrFail();
         $types = Type::all();
+        $technologies = Technology::all();
 
-        return view('admin.projects.edit', compact('project','types'));
+        return view('admin.projects.edit', compact('project','types','technologies'));
     }
 
     /**
@@ -117,9 +132,17 @@ class ProjectController extends Controller
     
             // Aggiungi lo slug ai dati validati
             $validatedData['slug'] = $slug;
+
             
             // Aggiorna i dati del progetto
             $project->update($validatedData);
+
+            if (isset($validatedData['technologies'])) {
+                $project->technologies()->sync($validatedData['technologies']);
+            }
+            else {
+                $project->technologies()->detach();
+            }
     
             return redirect()->route('admin.project.show', ['project' => $project->slug]);
         } catch (\Illuminate\Database\QueryException $e) {
