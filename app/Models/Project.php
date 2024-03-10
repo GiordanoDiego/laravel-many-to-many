@@ -12,7 +12,8 @@ class Project extends Model
     protected $fillable = [
         "title",
         "slug",
-        "content"
+        "content",
+        "type_id"
     ];
 
       // One to Many
@@ -20,9 +21,9 @@ class Project extends Model
       {
           return $this->belongsTo(Type::class);
       }
-      // Many-to-Many con Tag
-    public function technologies()
-    {
-        return $this->belongsToMany(Technology::class);
-    }
+        // Many-to-Many con Tag
+        public function technologies()
+        {
+            return $this->belongsToMany(Technology::class);
+        }
 }

@@ -45,7 +45,7 @@ class TechnologyController extends Controller
             'slug' => $slug,
         ]);
 
-        return redirect()->route('admin.technologies.show', ['technology' => $technology->id]);
+        return redirect()->route('admin.technologies.index');
     }
 
     /**
@@ -59,7 +59,7 @@ class TechnologyController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Technology $technology)
     {
         return view('admin.technologies.edit', compact('technology'));
     }

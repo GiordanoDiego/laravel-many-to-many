@@ -15,8 +15,8 @@ class Type extends Model
 
     
     //One to many - non importo il model di type perchè hanno lo stesso namespace
-    public function types()
+    public function projects()
     {
-        return $this->hasMany(Type::class);
+        return $this->hasMany(Project::class);
     }
 }

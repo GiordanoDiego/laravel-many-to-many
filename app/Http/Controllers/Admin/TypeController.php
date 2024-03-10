@@ -73,7 +73,7 @@ class TypeController extends Controller
      */
     public function show(string $slug)
     {
-        $type = Type::where('slug', $slug)->firstOrFail();
+        $type = Type::where('slug', $slug)->with('projects')->firstOrFail();
 
         return view('admin.type.show', compact('type'));
     }
@@ -93,11 +93,16 @@ class TypeController extends Controller
      */
     public function update(Request $request, Type $type)
     {
+        // Verifica che il tipo esista
+        if (!$type) {
+            return redirect()->route('admin.type.index')->withErrors(['message' => 'Il tipo specificato non esiste.']);
+        }
+    
         try {
+            // Validazione dei dati
             $validatedData = $request->validate([
                 'name' => 'required|max:1024'
-            ],
-            [
+            ], [
                 'name.required' => 'Devi inserire un titolo',
                 'name.max' => 'Non puoi inserire un titolo più lungo di 1024 caratteri '
             ]);
@@ -107,8 +112,8 @@ class TypeController extends Controller
     
             // Aggiungi lo slug ai dati validati
             $validatedData['slug'] = $slug;
-            
-            // Aggiorna i dati del progetto
+    
+            // Aggiorna i dati del tipo
             $type->update($validatedData);
     
             return redirect()->route('admin.type.show', ['type' => $type->slug]);
@@ -118,7 +123,6 @@ class TypeController extends Controller
                 return back()->withInput()->withErrors(['name' => 'Esiste già un tipo con questo nome.']);
             } else {
                 // Altro errore SQL
-                // Puoi gestire diversi tipi di errori SQL qui
                 return back()->withInput()->withErrors(['name' => 'Si è verificato un errore durante l\'aggiornamento del nome.']);
             }
         }
@@ -128,11 +132,19 @@ class TypeController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(string $slug)
-    {
-        $type = Type::where('slug', $slug)->firstOrFail();
-       
-        $type->delete();
+{
+    // Cerca il tipo per slug
+    $type = Type::where('slug', $slug)->first();
 
-        return redirect()->route('admin.type.index');
+    // Verifica che il tipo esista
+    if (!$type) {
+        return redirect()->route('admin.type.index')->withErrors(['message' => 'Il tipo specificato non esiste.']);
     }
+
+    // Elimina il tipo
+    $type->delete();
+
+    return redirect()->route('admin.type.index');
+}
+
 }

@@ -43,50 +43,51 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
             $validatedData = $request->validate([
                 'title' => 'required|max:1024',
                 'content' => 'required|max:4096',
+                'type_id' => 'required|exists:types,id', // Aggiungo la validazione per il campo type_id
             ],
-            //posso aggiungere un array per personalizzare i messaggi di errore e magari metterli in italiano
             [
                 'title.required' => 'Devi inserire un titolo',
                 'title.max' => 'Non puoi inserire un titolo più lungo di 1024 caratteri ',
-                'content.required' => 'Devi necessariamento inserire una descrizione del progetto ',
-                'content.max' => 'Non puoi inserire un descrizione più lunga di 4096 caratteri ',
+                'content.required' => 'Devi necessariamente inserire una descrizione del progetto ',
+                'content.max' => 'Non puoi inserire una descrizione più lunga di 4096 caratteri ',
+                'type_id.required' => 'Devi selezionare un tipo per il progetto',
+                'type_id.exists' => 'Il tipo selezionato non è valido',
             ]);
-            
-
+    
             // Genera lo slug dal titolo
             $slug = Str::slug($validatedData['title']);
     
             // Aggiungi lo slug ai dati validati
             $validatedData['slug'] = $slug;
-
-            
-            
-            $project = Project::create($validatedData);
+    
+            // Recupera l'istanza del tipo selezionato
+            $type = Type::findOrFail($validatedData['type_id']);
+    
+            // Creare il progetto associandogli il tipo
+            $project = new Project($validatedData);
+            $project->type()->associate($type);
+            $project->save();
+    
+            // Aggiungi le eventuali tecnologie associate
             if (isset($validatedData['technologies'])) {
-                foreach ($validatedData['technologies'] as $technologyId) {
-                
-                    $project->tags()->attach($technologyId);
-                }
+                $project->technologies()->attach($validatedData['technologies']);
             }
-
+    
             return redirect()->route('admin.project.show', ['project' => $project->slug]);
-        }
-        //gestico l'errore dell'eventuale non unicità dello slug
-        catch (\Illuminate\Database\QueryException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
             if ($e->errorInfo[1] == 1062) {
                 // Chiave unica duplicata
                 return back()->withInput()->withErrors(['title' => 'Esiste già un progetto con questo titolo.']);
             } else {
-                // Altro errore SQL
-                // Puoi gestire diversi tipi di errori SQL qui
                 return back()->withInput()->withErrors(['title' => 'Si è verificato un errore durante la creazione del progetto.']);
             }
         }
     }
+    
 
     /**
      * Display the specified resource.
@@ -107,55 +108,61 @@ class ProjectController extends Controller
         $types = Type::all();
         $technologies = Technology::all();
 
-        return view('admin.projects.edit', compact('project','types','technologies'));
+        return view('admin.projects.edit', compact('project', 'types', 'technologies'));
     }
+
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Project $project)
-    {
-        try {
-            $validatedData = $request->validate([
-                'title' => 'required|max:1024',
-                'content' => 'required|max:4096',
-            ],
-            [
-                'title.required' => 'Devi inserire un titolo',
-                'title.max' => 'Non puoi inserire un titolo più lungo di 1024 caratteri ',
-                'content.required' => 'Devi necessariamente inserire una descrizione del progetto ',
-                'content.max' => 'Non puoi inserire una descrizione più lunga di 4096 caratteri ',
-            ]);
-    
-            // Genera lo slug dal titolo
-            $slug = Str::slug($validatedData['title']);
-    
-            // Aggiungi lo slug ai dati validati
-            $validatedData['slug'] = $slug;
+{
+    try {
+        $validatedData = $request->validate([
+            'title' => 'required|max:1024',
+            'content' => 'required|max:4096',
+            'type_id' => 'required|exists:types,id', // Aggiungo la validazione per il campo type_id
+        ],
+        [
+            'title.required' => 'Devi inserire un titolo',
+            'title.max' => 'Non puoi inserire un titolo più lungo di 1024 caratteri ',
+            'content.required' => 'Devi necessariamente inserire una descrizione del progetto ',
+            'content.max' => 'Non puoi inserire una descrizione più lunga di 4096 caratteri ',
+            'type_id.required' => 'Devi selezionare un tipo per il progetto',
+            'type_id.exists' => 'Il tipo selezionato non è valido',
+        ]);
 
-            
-            // Aggiorna i dati del progetto
-            $project->update($validatedData);
+        // Genera lo slug dal titolo
+        $slug = Str::slug($validatedData['title']);
 
-            if (isset($validatedData['technologies'])) {
-                $project->technologies()->sync($validatedData['technologies']);
-            }
-            else {
-                $project->technologies()->detach();
-            }
-    
-            return redirect()->route('admin.project.show', ['project' => $project->slug]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            if ($e->errorInfo[1] == 1062) {
-                // Chiave unica duplicata
-                return back()->withInput()->withErrors(['title' => 'Esiste già un progetto con questo titolo.']);
-            } else {
-                // Altro errore SQL
-                // Puoi gestire diversi tipi di errori SQL qui
-                return back()->withInput()->withErrors(['title' => 'Si è verificato un errore durante l\'aggiornamento del progetto.']);
-            }
+        // Aggiungi lo slug ai dati validati
+        $validatedData['slug'] = $slug;
+
+        // Aggiorna i dati del progetto con i dati validati
+        $project->update($validatedData);
+
+        // Aggiorna le relazioni con le tecnologie
+        if (isset($validatedData['technologies'])) {
+            $project->technologies()->sync($validatedData['technologies']);
+        } else {
+            $project->technologies()->detach();
+        }
+
+        return redirect()->route('admin.project.show', ['project' => $project->slug]);
+    } catch (\Illuminate\Database\QueryException $e) {
+        if ($e->errorInfo[1] == 1062) {
+            // Chiave unica duplicata
+            return back()->withInput()->withErrors(['title' => 'Esiste già un progetto con questo titolo.']);
+        } else {
+            return back()->withInput()->withErrors(['title' => 'Si è verificato un errore durante l\'aggiornamento del progetto.']);
         }
     }
+}
+
+    
+
+
+
 
     /**
      * Remove the specified resource from storage.

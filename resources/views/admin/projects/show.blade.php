@@ -16,12 +16,12 @@
                 </h2>
 
                 @if ($project->type != null)
-                        <h2>
-                            Categoria:
-                            <a href="{{ route('admin.type.show', ['type' => $post->type->id]) }}">
-                                {{ $post->type->name }}
-                            </a>
-                        </h2>
+                    <h2>
+                        Categoria:
+                        <a href="{{ route('admin.type.show', ['type' => $project->type->id]) }}">
+                            {{ $project->type->name }}
+                        </a>
+                    </h2>
                 @endif
 
                 <p>

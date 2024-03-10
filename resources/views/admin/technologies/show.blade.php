@@ -23,15 +23,19 @@
                     Progetti con questa technology
                 </h2>
 
-                <ul>
-                    @foreach ($technology->projects as $project)
-                        <li>
-                            <a href="{{ route('admin.projects.show', ['project' => $project->id]) }}">
-                                {{ $project->title }}
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
+                @if ($technology->projects)
+                    <ul>
+                        @foreach ($technology->projects as $project)
+                            <li>
+                                <a href="{{ route('admin.projects.show', ['project' => $project->id]) }}">
+                                    {{ $project->title }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p>Nessun progetto associato a questa tecnologia.</p>
+                @endif
             </div>
         </div>
     </div>

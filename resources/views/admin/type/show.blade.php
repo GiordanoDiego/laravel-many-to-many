@@ -11,13 +11,27 @@
                     {{ $type->name }}
                 </h1>
 
-                <h2>
+                <span>
                     Slug: {{ $type->slug }}
-                </h2>
+                </span>
 
-                <p>
-                    {{ $type->content }}
-                </p>
+                <h2 class="text-center text-success">
+                    Progetti con questo tipo
+                </h2>
+                
+                <ul>
+                    @if ($type->projects)
+                        @foreach ($type->projects as $project)
+                            <li>
+                                <a href="{{ route('admin.project.show', ['project' => $project->slug]) }}">
+                                    {{ $project->title }}
+                                </a>
+                            </li>
+                        @endforeach
+                    @endif
+                </ul>
+
+                
 
                 <div class="text-center">
                     <a href="{{ route('admin.type.index') }}">Torna indietro</a>
